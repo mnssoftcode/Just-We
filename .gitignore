@@ -1,0 +1,25 @@
+# Ignore Python cache and environment files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Ignore environment and secret files
+.env
+.env.*
+*.env
+
+# Ignore dataset and large files (optional, comment out if you want to push datasets)
+dataset/*.csv
+.DS_Store
+
+# Ignore system files
+*.swp
+*.swo
+
+# Ignore Jupyter and notebook checkpoints
+.ipynb_checkpoints/
+
+# Ignore VSCode and IDE settings
+.vscode/
+.idea/ 
