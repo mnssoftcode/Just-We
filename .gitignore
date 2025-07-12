@@ -9,11 +9,8 @@ __pycache__/
 .env.*
 *.env
 
-# Ignore dataset and large files (optional, comment out if you want to push datasets)
-dataset/*.csv
-.DS_Store
-
 # Ignore system files
+.DS_Store
 *.swp
 *.swo
 
