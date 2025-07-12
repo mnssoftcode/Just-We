@@ -10,7 +10,7 @@ from utils.dataset_handler import DatasetHandler
 class OpenAIHandler:
     def __init__(self):
         """Initialize GROQ handler with mental health focus and Fast Chatbot Strategy"""
-        self.api_key = os.getenv('GROQ_API_KEY', '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')
+        self.api_key = os.getenv('GROQ_API_KEY')
         if not self.api_key:
             raise ValueError("GROQ API key not found in environment variables")
         
