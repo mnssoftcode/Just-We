@@ -39,23 +39,21 @@
         }
 
         .chat-container {
-            background: rgba(255, 255, 255, 0.95);
-            /* backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px); */
+            background: transparent;
             border-radius: 0;
-            box-shadow: 0 0 0 rgba(33, 150, 243, 0.15);
             width: 100%;
             height: 100vh;
             display: flex;
             flex-direction: column;
             overflow: hidden;
             position: relative;
+            /* margin-bottom: 30px; */
         }
 
         .simple-header {
             background: rgba(33, 150, 243, 0.1);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
+            /* backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px); */
             color: #2196F3;
             padding: 10px 20px;
             display: flex;
@@ -81,8 +79,8 @@
             cursor: pointer;
             font-size: 1rem;
             transition: all 0.3s ease;
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
+            /* backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px); */
         }
 
         .header-clear-btn:hover {
@@ -124,6 +122,7 @@
             flex: 1;
             overflow-y: auto;
             padding: 20px;
+            padding-bottom: 160px;
             display: flex;
             flex-direction: column;
             gap: 15px;
@@ -297,61 +296,120 @@
             40% { transform: scale(1); opacity: 1; }
         }
 
-        .chat-input-container {
-            padding: 20px;
-            background: white;
-            border-top: 1px solid #E3F2FD;
-            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
-        }
+/* 
+        .quick-replies-container {
+
+    width: 100% !important;
+    max-width: 100vw !important;
+    overflow: hidden ;
+    background:transparent;
+    padding-bottom: 60px;
+} */
+.quick-replies {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    /* overflow-x: auto !important;
+    overflow-y: hidden !important;
+    white-space: nowrap !important; */
+    width: 100% !important;
+    max-width: 100vw !important;
+    align-items: stretch !important;
+    gap: 0 !important;
+    padding: 8px 0 !important;
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+            display: flex;
+            position: fixed;
+            bottom: 75px;
+            z-index: 1000;
+}
+.quick-replies::-webkit-scrollbar {
+    display: none !important;
+}
+.quick-reply {
+    flex: 0 0 auto !important;
+    white-space: nowrap !important;
+    min-width: max-content !important;
+    margin: 0 4px !important;
+    background: transparent;
+    border-radius: 20px;
+    padding: 8px 16px;
+    font-size: 14px;
+    color: #2196F3;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+.quick-reply:hover {
+    background: rgba(255, 255, 255, 0.9);
+    transform: scale(1.05);
+}
+  
 
         .chat-input-wrapper {
+            width: 90%;
+            margin: 10px auto;
             display: flex;
-            gap: 10px;
-            align-items: flex-end;
+            gap: 8px;
+            align-items: center;
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 24px;
+            padding: 12px 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
         }
 
         .chat-input {
             flex: 1;
-            border: 2px solid #E3F2FD;
-            border-radius: 25px;
-            padding: 15px 20px;
+            border: none;
+            border-radius: 0;
+            padding: 8px 12px;
             font-size: 16px;
             outline: none;
             transition: all 0.3s ease;
             resize: none;
-            min-height: 50px;
+            min-height: 24px;
             max-height: 120px;
             font-family: inherit;
-            background: #FAFBFF;
+            background: transparent;
             -webkit-appearance: none;
-            -webkit-border-radius: 25px;
+            line-height: 1.4;
         }
 
         .chat-input:focus {
-            border-color: #2196F3;
-            background: white;
-            box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
+            outline: none;
         }
 
         .send-button {
-            background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+            background: rgba(33, 150, 243, 0.9);
             color: white;
             border: none;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
+            border-radius: 16px;
+            width: 36px;
+            height: 36px;
             cursor: pointer;
             transition: all 0.2s ease;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 18px;
-            box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
+            font-size: 14px;
             -webkit-tap-highlight-color: transparent;
             touch-action: manipulation;
+            flex-shrink: 0;
+            /* backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px); */
+            box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
         }
 
         .send-button:hover {
+            background: rgba(25, 118, 210, 0.9);
             transform: scale(1.05);
             box-shadow: 0 4px 12px rgba(33, 150, 243, 0.4);
         }
@@ -681,30 +739,30 @@
             position: relative;
         }
 
-        .input-actions {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 10px;
-        }
+
 
         .input-action {
-            background: rgba(33, 150, 243, 0.1);
+            background: rgba(255, 255, 255, 0.3);
             border: none;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
+            border-radius: 16px;
+            width: 36px;
+            height: 36px;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 16px;
             transition: all 0.2s ease;
-            color: #2196F3;
+            color: #6c757d;
+            flex-shrink: 0;
+            /* backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px); */
         }
 
         .input-action:hover {
-            background: rgba(33, 150, 243, 0.2);
-            transform: scale(1.1);
+            background: rgba(255, 255, 255, 0.5);
+            color: #495057;
+            transform: scale(1.05);
         }
 
         .input-action:active {
@@ -748,7 +806,7 @@
             .quick-replies {
                 justify-content: flex-start;
                 overflow-x: auto;
-                padding-bottom: 5px;
+                /* padding-bottom: 5px; */
             }
 
             .quick-reply {
@@ -761,9 +819,7 @@
                 margin-top: 5px;
             }
 
-            .input-actions {
-                justify-content: center;
-            }
+
         }
 
         @media (max-width: 480px) {
@@ -790,9 +846,46 @@
             }
 
             .input-action {
-                width: 35px;
-                height: 35px;
+                width: 32px;
+                height: 32px;
                 font-size: 14px;
+                border-radius: 14px;
+            }
+            
+            .chat-input {
+                padding: 6px 10px;
+                font-size: 15px;
+                min-height: 20px;
+            }
+            
+            .send-button {
+                width: 32px;
+                height: 32px;
+                font-size: 12px;
+                border-radius: 14px;
+            }
+            
+
+            
+            .chat-input-wrapper {
+                padding: 6px 10px;
+                border-radius: 20px;
+            }
+/*             
+            .quick-replies-container {
+                bottom: 80px;
+                width: 95%;
+            } */
+            
+            .quick-replies {
+                gap: 6px;
+                padding: 6px 0;
+            }
+            
+            .quick-reply {
+                padding: 6px 12px;
+                font-size: 12px;
+                border-radius: 16px;
             }
         }
 
@@ -935,27 +1028,34 @@
             </div>
         </div>
         
-        <div class="chat-input-container">
-            <div class="input-actions">
-                <button class="input-action" onclick="showVoiceInput()" title="Voice input">
-                    🎤
-                </button>
-                <button class="input-action" onclick="showEmojiPicker()" title="Add emoji">
-                    😊
-                </button>
+        <!-- <div class="quick-replies-container"> -->
+            <div class="quick-replies">
+                <button class="quick-reply" onclick="setQuickReply('I\'m feeling anxious')">I'm feeling anxious</button>
+                <button class="quick-reply" onclick="setQuickReply('I\'m feeling sad')">I'm feeling sad</button>
+                <button class="quick-reply" onclick="setQuickReply('I need someone to talk to')">I need someone to talk to</button>
+                <button class="quick-reply" onclick="setQuickReply('I\'m having trouble sleeping')">I'm having trouble sleeping</button>
+                <button class="quick-reply" onclick="setQuickReply('I feel overwhelmed')">I feel overwhelmed</button>
+                <button class="quick-reply" onclick="setQuickReply('I\'m stressed about work')">I'm stressed about work</button>
+                <button class="quick-reply" onclick="setQuickReply('I feel lonely')">I feel lonely</button>
+                <button class="quick-reply" onclick="setQuickReply('I need motivation')">I need motivation</button>
+                <button class="quick-reply" onclick="setQuickReply('I want to feel better')">I want to feel better</button>
             </div>
-            <div class="chat-input-wrapper">
-                <textarea 
-                    id="messageInput" 
-                    class="chat-input" 
-                    placeholder="Share what's on your mind..."
-                    rows="1"
-                    onkeydown="handleKeyDown(event)"
-                ></textarea>
-                <button id="sendButton" class="send-button" onclick="sendMessage()">
-                    ➤
-                </button>
-            </div>
+        <!-- </div> -->
+        
+        <div class="chat-input-wrapper">
+            <textarea 
+                id="messageInput" 
+                class="chat-input" 
+                placeholder="Share what's on your mind..."
+                rows="1"
+                onkeydown="handleKeyDown(event)"
+            ></textarea>
+            <button class="input-action" onclick="showVoiceInput()" title="Voice input">
+                🎤
+            </button>
+            <button id="sendButton" class="send-button" onclick="sendMessage()">
+                ➤
+            </button>
         </div>
         
         <!-- Voice input indicator -->
@@ -1250,36 +1350,11 @@
             }, 3000);
         }
 
-        // Quick reply suggestions
-        function addQuickReplies() {
-            const quickReplies = [
-                'I\'m feeling anxious',
-                'I\'m feeling sad',
-                'I need someone to talk to',
-                'I\'m having trouble sleeping',
-                'I feel overwhelmed'
-            ];
-            
-            const quickRepliesDiv = document.createElement('div');
-            quickRepliesDiv.className = 'quick-replies';
-            
-            quickReplies.forEach(reply => {
-                const button = document.createElement('button');
-                button.className = 'quick-reply';
-                button.textContent = reply;
-                button.onclick = () => {
-                    document.getElementById('messageInput').value = reply;
-                    sendMessage();
-                };
-                quickRepliesDiv.appendChild(button);
-            });
-            
-            const chatMessages = document.getElementById('chatMessages');
-            chatMessages.appendChild(quickRepliesDiv);
+        // Quick reply function
+        function setQuickReply(text) {
+            document.getElementById('messageInput').value = text;
+            document.getElementById('messageInput').focus();
         }
-
-        // Add quick replies after welcome message
-        setTimeout(addQuickReplies, 1000);
 
         // Enhanced input actions
         function showVoiceInput() {
