@@ -3,12 +3,16 @@ import numpy as np
 import json
 import re
 from typing import List, Dict, Optional, Tuple
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
 import os
 
 class DatasetHandler:
     def __init__(self):
         """Initialize dataset handler for Fast Chatbot Strategy"""
         self.datasets = {}
+        self.vectorizers = {}
+        self.embeddings = {}
         self.load_datasets()
         
     def load_datasets(self):
@@ -36,13 +40,46 @@ class DatasetHandler:
             self.datasets['mental'] = mental_df
             print(f"✅ Loaded MentalChat datasets: {len(mental_df)} total entries")
             
+            # Prepare search vectors
+            self._prepare_search_vectors()
+            
         except Exception as e:
             print(f"❌ Error loading datasets: {e}")
             self.datasets = {}
     
+    def _prepare_search_vectors(self):
+        """Prepare TF-IDF vectors for fast similarity search"""
+        for dataset_name, df in self.datasets.items():
+            try:
+                if dataset_name == 'emotion':
+                    # For emotion dataset, use situation + emotion
+                    texts = df['Situation'].fillna('') + ' ' + df['emotion'].fillna('')
+                else:
+                    # For mental health dataset, use input
+                    texts = df['input'].fillna('')
+                
+                # Create TF-IDF vectorizer
+                vectorizer = TfidfVectorizer(
+                    max_features=5000,
+                    stop_words='english',
+                    ngram_range=(1, 2),
+                    min_df=2
+                )
+                
+                # Fit and transform
+                embeddings = vectorizer.fit_transform(texts)
+                
+                self.vectorizers[dataset_name] = vectorizer
+                self.embeddings[dataset_name] = embeddings
+                
+                print(f"✅ Prepared search vectors for {dataset_name} dataset")
+                
+            except Exception as e:
+                print(f"❌ Error preparing vectors for {dataset_name}: {e}")
+    
     def find_best_match(self, user_message: str, emotion: str = None, threshold: float = 0.3) -> Optional[Dict]:
         """
-        Find the best matching response from datasets using keyword matching
+        Find the best matching response from datasets
         Returns: Dict with 'response', 'source', 'similarity_score', 'dataset'
         """
         best_match = None
@@ -50,27 +87,28 @@ class DatasetHandler:
         
         # Clean user message
         clean_message = self._clean_text(user_message)
-        user_keywords = set(clean_message.split())
         
         # Search in emotion dataset if emotion is detected
         if emotion and emotion != 'neutral':
-            emotion_match = self._search_emotion_dataset(clean_message, user_keywords, emotion, threshold)
+            emotion_match = self._search_emotion_dataset(clean_message, emotion, threshold)
             if emotion_match and emotion_match['similarity_score'] > best_score:
                 best_match = emotion_match
                 best_score = emotion_match['similarity_score']
         
         # Search in mental health dataset
-        mental_match = self._search_mental_dataset(clean_message, user_keywords, threshold)
+        mental_match = self._search_mental_dataset(clean_message, threshold)
         if mental_match and mental_match['similarity_score'] > best_score:
             best_match = mental_match
             best_score = mental_match['similarity_score']
         
         return best_match if best_score >= threshold else None
     
-    def _search_emotion_dataset(self, user_message: str, user_keywords: set, emotion: str, threshold: float) -> Optional[Dict]:
-        """Search emotion dataset for similar situations using keyword matching"""
+    def _search_emotion_dataset(self, user_message: str, emotion: str, threshold: float) -> Optional[Dict]:
+        """Search emotion dataset for similar situations"""
         try:
             df = self.datasets['emotion']
+            vectorizer = self.vectorizers['emotion']
+            embeddings = self.embeddings['emotion']
             
             # Filter by emotion if specified
             emotion_filter = df['emotion'].str.contains(emotion, case=False, na=False)
@@ -79,32 +117,24 @@ class DatasetHandler:
             if len(filtered_df) == 0:
                 return None
             
-            best_score = 0
-            best_row = None
+            # Get user message vector
+            user_vector = vectorizer.transform([user_message])
             
-            # Search through filtered dataset
-            for idx, row in filtered_df.iterrows():
-                # Combine situation and emotion for search
-                search_text = f"{row['Situation']} {row['emotion']}"
-                search_keywords = set(self._clean_text(search_text).split())
-                
-                # Calculate keyword overlap
-                overlap = len(user_keywords.intersection(search_keywords))
-                total_keywords = len(user_keywords.union(search_keywords))
-                
-                if total_keywords > 0:
-                    similarity = overlap / total_keywords
-                    if similarity > best_score:
-                        best_score = similarity
-                        best_row = row
+            # Calculate similarities
+            similarities = cosine_similarity(user_vector, embeddings[emotion_filter.index])
             
-            if best_score >= threshold and best_row is not None:
+            # Find best match
+            best_idx = np.argmax(similarities)
+            best_score = similarities[0][best_idx]
+            
+            if best_score >= threshold:
+                row = filtered_df.iloc[best_idx]
                 return {
-                    'response': self._extract_response_from_emotion(best_row),
+                    'response': self._extract_response_from_emotion(row),
                     'source': 'emotion_dataset',
                     'similarity_score': float(best_score),
                     'dataset': 'emotion',
-                    'emotion': best_row['emotion']
+                    'emotion': row['emotion']
                 }
             
         except Exception as e:
@@ -112,36 +142,31 @@ class DatasetHandler:
         
         return None
     
-    def _search_mental_dataset(self, user_message: str, user_keywords: set, threshold: float) -> Optional[Dict]:
-        """Search mental health dataset for similar questions using keyword matching"""
+    def _search_mental_dataset(self, user_message: str, threshold: float) -> Optional[Dict]:
+        """Search mental health dataset for similar questions"""
         try:
             df = self.datasets['mental']
+            vectorizer = self.vectorizers['mental']
+            embeddings = self.embeddings['mental']
             
-            best_score = 0
-            best_row = None
+            # Get user message vector
+            user_vector = vectorizer.transform([user_message])
             
-            # Search through dataset
-            for idx, row in df.iterrows():
-                search_text = row['input']
-                search_keywords = set(self._clean_text(search_text).split())
-                
-                # Calculate keyword overlap
-                overlap = len(user_keywords.intersection(search_keywords))
-                total_keywords = len(user_keywords.union(search_keywords))
-                
-                if total_keywords > 0:
-                    similarity = overlap / total_keywords
-                    if similarity > best_score:
-                        best_score = similarity
-                        best_row = row
+            # Calculate similarities
+            similarities = cosine_similarity(user_vector, embeddings)
             
-            if best_score >= threshold and best_row is not None:
+            # Find best match
+            best_idx = np.argmax(similarities)
+            best_score = similarities[0][best_idx]
+            
+            if best_score >= threshold:
+                row = df.iloc[best_idx]
                 return {
-                    'response': best_row['output'],
+                    'response': row['output'],
                     'source': 'mental_health_dataset',
                     'similarity_score': float(best_score),
                     'dataset': 'mental',
-                    'input': best_row['input']
+                    'input': row['input']
                 }
             
         except Exception as e:
@@ -173,13 +198,12 @@ class DatasetHandler:
     def get_dataset_stats(self) -> Dict:
         """Get statistics about loaded datasets"""
         stats = {}
-        
-        for dataset_name, df in self.datasets.items():
-            stats[dataset_name] = {
-                'total_entries': len(df),
-                'columns': list(df.columns)
+        for name, df in self.datasets.items():
+            stats[name] = {
+                'rows': len(df),
+                'columns': list(df.columns),
+                'sample_entries': min(3, len(df))
             }
-        
         return stats
     
     def get_fallback_response(self, emotion: str = None) -> str:
@@ -208,8 +232,6 @@ class DatasetHandler:
         }
         
         if emotion and emotion in fallback_responses:
-            import random
-            return random.choice(fallback_responses[emotion])
+            return np.random.choice(fallback_responses[emotion])
         else:
-            import random
-            return random.choice(fallback_responses['default']) 
+            return np.random.choice(fallback_responses['default']) 
