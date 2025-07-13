@@ -4,6 +4,7 @@ import json
 import random
 from typing import List, Dict, Optional
 import sys
+import re
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from utils.dataset_handler import DatasetHandler
 from datetime import datetime
@@ -25,14 +26,15 @@ class OpenAIHandler:
         self.dataset_handler = DatasetHandler()
         
         # Enhanced mental health system prompt
-        self.system_prompt = """You are "CalmSpace," a supportive, empathetic mental health assistant designed to help users who may be feeling lonely, anxious, overwhelmed, sad, or experiencing other emotional challenges. You are not a doctor and never give medical advice or diagnosis.
+        self.system_prompt = """
+You are \"Just We,\" a supportive, empathetic mental health assistant. Always sound human, warm, and natural (never robotic). Keep responses short and concise (1-3 sentences max). Use relevant emojis in every response (1-2 per message, placed naturally). Respond as a supportive, friendly human. Keep replies short (1-3 sentences), use emojis, and sound natural.
 
 Your enhanced capabilities include:
-- **Emotion-Aware Responses**: Adapt your tone and approach based on the user's emotional state
-- **Crisis Intervention**: Recognize crisis situations and provide appropriate resources
-- **Personalized Support**: Tailor responses to individual needs and preferences
-- **Multi-Turn Memory**: Remember context from previous messages in the conversation
-- **Response Quality**: Ensure responses are helpful, supportive, and appropriate
+- Emotion-Aware Responses: Adapt your tone and approach based on the user's emotional state
+- Crisis Intervention: Recognize crisis situations and provide appropriate resources
+- Personalized Support: Tailor responses to individual needs and preferences
+- Multi-Turn Memory: Remember context from previous messages in the conversation
+- Response Quality: Ensure responses are helpful, supportive, and appropriate
 
 Your role is to:
 - Listen actively and non-judgmentally
@@ -42,21 +44,22 @@ Your role is to:
 - Recommend professional help when appropriate
 - Maintain consistent, caring presence throughout conversations
 
-**Response Guidelines:**
-- **For Crisis Situations**: Provide immediate resources and encourage professional help
-- **For High Emotion**: Offer immediate grounding and support
-- **For Moderate Distress**: Provide coping strategies and validation
-- **For Positive Emotions**: Celebrate and encourage continued positive activities
-- **For Neutral States**: Maintain supportive presence and gentle engagement
+Response Guidelines:
+- For Crisis Situations: Provide immediate resources and encourage professional help
+- For High Emotion: Offer immediate grounding and support
+- For Moderate Distress: Provide coping strategies and validation
+- For Positive Emotions: Celebrate and encourage continued positive activities
+- For Neutral States: Maintain supportive presence and gentle engagement
 
-**Tone Guidelines:**
+Tone Guidelines:
 - Warm, kind, and reassuring
 - Never robotic or overly cheerful
 - Respectful and non-judgmental
 - Adapt tone to match user's emotional intensity
 - Use simple, clear language
 
-Always end your response with a gentle invitation to continue the conversation."""
+Always end your response with a gentle invitation to continue the conversation.
+"""
         
         # Enhanced fallback responses with emotion-specific variations
         self.fallback_responses = {
@@ -323,7 +326,15 @@ Always end your response with a gentle invitation to continue the conversation."
                 result = response.json()
                 ai_response = result["choices"][0]["message"]["content"].strip()
                 print("✅ GROQ API response successful")
-                
+                # --- Post-process for human-like, concise, emoji-rich replies ---
+                ai_response = self._shorten_response(ai_response)
+                ai_response = self._add_emoji_to_response(ai_response, emotion_data['primary_emotion'] if emotion_data else None)
+                if len(ai_response) > 300:
+                    ai_response = ai_response[:297] + "...";
+                emotion = emotion_data['primary_emotion'] if emotion_data and 'primary_emotion' in emotion_data else 'neutral'
+                heading = self._get_heading_for_emotion(emotion)
+                label = f"<span style='font-size:0.9em;color:#2196F3;'>Mood: {emotion.capitalize() if emotion != 'neutral' else 'Checking in'}</span><br>"
+                ai_response = f"<strong>{heading}</strong><br>{label}{ai_response}"
                 response_data = {
                     'response': ai_response,
                     'source': 'groq_api',
@@ -517,6 +528,33 @@ Always end your response with a gentle invitation to continue the conversation."
             'crisis_trend': self._analyze_crisis_trend(crisis_levels),
             'last_interaction': memory[-1]['timestamp'] if memory else None
         }
+    
+    def _shorten_response(self, response: str) -> str:
+         # Keep only the first 2-3 sentences
+        sentences = re.split(r'(?<=[.!?]) +', response)
+        short = ' '.join(sentences[:3]).strip()
+        return short     
+
+    def _add_emoji_to_response(self, response: str, emotion: str = None) -> str:
+        # If response already has an emoji, return as is
+    
+        if re.search(r'[\U0001F600-\U0001F64F\U0001F300-\U0001F5FF\U0001F680-\U0001F6FF\U0001F1E0-\U0001F1FF]', response):
+            return response
+        # Choose emoji based on emotion
+        emoji_map = {
+            'anxious': '😟',
+            'sad': '😢',
+            'angry': '😠',
+            'stressed': '😣',
+            'lonely': '🤗',
+            'happy': '😊',
+            'confused': '🤔',
+            'default': '💚'
+        }
+        emoji = emoji_map.get(emotion, emoji_map['default'])
+        # Add emoji at the end if not present
+        return response + " " + emoji       
+    
 
     def _analyze_emotion_trend(self, emotions: List[str]) -> str:
         """Analyze emotion trend from conversation history"""
@@ -545,3 +583,17 @@ Always end your response with a gentle invitation to continue the conversation."
             return 'improving'
         else:
             return 'stable' 
+
+    def _get_heading_for_emotion(self, emotion: str) -> str:
+        headings = {
+            'anxious': "🌱 Here for You",
+            'sad': "💙 Gentle Support",
+            'angry': "🔥 Let's Cool Down",
+            'stressed': "🧘 Quick Tip",
+            'lonely': "🤗 You're Not Alone",
+            'happy': "🌞 Celebrate!",
+            'confused': "❓ Let's Clarify",
+            'neutral': "💬 Checking In",
+            'default': "💬 Support Message"
+        }
+        return headings.get(emotion, headings['default']) 
