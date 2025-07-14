@@ -4,11 +4,11 @@ services:
     env: python
     plan: free
     buildCommand: "pip install -r requirements.txt"
-    startCommand: "python backend/app.py"
+    startCommand: "python app.py"
     envVars:
       - key: FLASK_ENV
         value: production
       - key: PORT
         value: 5000
     autoDeploy: true
-    healthCheckPath: /api/health 
+    healthCheckPath: /api/health
