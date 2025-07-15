@@ -205,6 +205,10 @@
             border: 1px solid #E3F2FD;
             box-shadow: 0 4px 12px rgba(33, 150, 243, 0.1);
             position: relative;
+            user-select: text;
+            -webkit-user-select: text;
+            -moz-user-select: text;
+            -ms-user-select: text;
         }
 
         .message.assistant::before {
@@ -954,10 +958,10 @@
 
         /* Touch-friendly interactions */
         .message {
-            user-select: none;
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
+            /* user-select: none; */
+            /* -webkit-user-select: none; */
+            /* -moz-user-select: none; */
+            /* -ms-user-select: none; */
         }
 
         .message.user {
@@ -1050,7 +1054,7 @@
                 rows="1"
                 onkeydown="handleKeyDown(event)"
             ></textarea>
-            <button class="input-action" onclick="showVoiceInput()" title="Voice input">
+            <button class="input-action" title="Voice input">
                 🎤
             </button>
             <button id="sendButton" class="send-button" onclick="sendMessage()">
@@ -1245,9 +1249,9 @@
                 conversationHistory.push({ role: 'assistant', content: data.message });
                 
                 // Log emotion detection for debugging
-                if (data.emotion && data.emotion !== 'neutral') {
-                    console.log(`Detected emotion: ${data.emotion}`);
-                }
+                // if (data.emotion && data.emotion !== 'neutral') {
+                //     console.log(`Detected emotion: ${data.emotion}`);
+                // }
                 
             } catch (error) {
                 console.error('Error:', error);
@@ -1357,55 +1361,70 @@
         }
 
         // Enhanced input actions
-        function showVoiceInput() {
+        let recognition = null;
+        let isRecording = false;
+        const micButton = document.querySelector('.input-action');
+        const voiceIndicator = document.getElementById('voiceIndicator');
+
+        function startVoiceInput() {
             if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
                 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-                const recognition = new SpeechRecognition();
-                
+                recognition = new SpeechRecognition();
                 recognition.continuous = false;
                 recognition.interimResults = false;
                 recognition.lang = 'en-US';
-                
-                const voiceIndicator = document.getElementById('voiceIndicator');
-                voiceIndicator.classList.add('recording');
-                
+
                 recognition.onstart = () => {
-                    console.log('Voice recognition started');
+                    isRecording = true;
+                    voiceIndicator.classList.add('recording');
                 };
-                
                 recognition.onresult = (event) => {
                     const transcript = event.results[0][0].transcript;
-                    document.getElementById('messageInput').value = transcript;
-                    voiceIndicator.classList.remove('recording');
+                    const inputElem = document.getElementById('messageInput');
+                    inputElem.value = inputElem.value + (inputElem.value ? ' ' : '') + transcript;
+                    stopVoiceInput();
                 };
-                
                 recognition.onerror = (event) => {
                     console.error('Speech recognition error:', event.error);
-                    voiceIndicator.classList.remove('recording');
+                    stopVoiceInput();
                     showToast('Voice input not available');
                 };
-                
                 recognition.onend = () => {
-                    voiceIndicator.classList.remove('recording');
+                    stopVoiceInput();
                 };
-                
                 recognition.start();
             } else {
                 showToast('Voice input not supported in this browser');
             }
         }
 
-        function showEmojiPicker() {
-            const emojis = ['😊', '😢', '😡', '😰', '😴', '😌', '🤗', '💙', '🌿', '☀️'];
-            const messageInput = document.getElementById('messageInput');
-            
-            // Simple emoji picker - in production you'd want a more sophisticated one
-            const emoji = emojis[Math.floor(Math.random() * emojis.length)];
-            messageInput.value += emoji;
-            messageInput.focus();
-            
-            showToast('Emoji added!');
+        function stopVoiceInput() {
+            if (recognition && isRecording) {
+                recognition.stop();
+            }
+            isRecording = false;
+            voiceIndicator.classList.remove('recording');
         }
+
+        // Only listen while holding the mic button
+        micButton.addEventListener('mousedown', (e) => {
+            if (!isRecording) startVoiceInput();
+        });
+        micButton.addEventListener('touchstart', (e) => {
+            if (!isRecording) startVoiceInput();
+        });
+        micButton.addEventListener('mouseup', (e) => {
+            if (isRecording) stopVoiceInput();
+        });
+        micButton.addEventListener('mouseleave', (e) => {
+            if (isRecording) stopVoiceInput();
+        });
+        micButton.addEventListener('touchend', (e) => {
+            if (isRecording) stopVoiceInput();
+        });
+        micButton.addEventListener('touchcancel', (e) => {
+            if (isRecording) stopVoiceInput();
+        });
 
         function clearChat() {
             if (confirm('Are you sure you want to clear the chat? This cannot be undone.')) {

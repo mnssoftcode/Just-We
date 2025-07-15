@@ -332,9 +332,10 @@ Always end your response with a gentle invitation to continue the conversation.
                 if len(ai_response) > 300:
                     ai_response = ai_response[:297] + "...";
                 emotion = emotion_data['primary_emotion'] if emotion_data and 'primary_emotion' in emotion_data else 'neutral'
-                heading = self._get_heading_for_emotion(emotion)
-                label = f"<span style='font-size:0.9em;color:#2196F3;'>Mood: {emotion.capitalize() if emotion != 'neutral' else 'Checking in'}</span><br>"
-                ai_response = f"<strong>{heading}</strong><br>{label}{ai_response}"
+                # Remove mood label and heading from response
+                # heading = self._get_heading_for_emotion(emotion)
+                # label = f"<span style='font-size:0.9em;color:#2196F3;'>Mood: {emotion.capitalize() if emotion != 'neutral' else 'Checking in'}</span><br>"
+                # ai_response = f"<strong>{heading}</strong><br>{label}{ai_response}"
                 response_data = {
                     'response': ai_response,
                     'source': 'groq_api',
@@ -588,7 +589,7 @@ Always end your response with a gentle invitation to continue the conversation.
         headings = {
             'anxious': "🌱 Here for You",
             'sad': "💙 Gentle Support",
-            'angry': "🔥 Let's Cool Down",
+            'angry': "�� Let's Cool Down",
             'stressed': "🧘 Quick Tip",
             'lonely': "🤗 You're Not Alone",
             'happy': "🌞 Celebrate!",
