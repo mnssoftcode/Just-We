@@ -20,3 +20,4 @@ __pycache__/
 # Ignore VSCode and IDE settings
 .vscode/
 .idea/ 
+ai-env/ 
