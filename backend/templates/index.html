@@ -1005,6 +1005,61 @@
                 transform: scale(0.95);
             }
         }
+        .header-profile-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.3rem;
+            margin-left: 5px;
+            transition: transform 0.2s;
+        }
+        .header-profile-btn:active {
+            transform: scale(0.95);
+        }
+        .profile-modal {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0,0,0,0.3);
+        }
+        .profile-modal-content {
+            background: #fff;
+            padding: 30px 24px 24px 24px;
+            border-radius: 16px;
+            min-width: 280px;
+            max-width: 90vw;
+            box-shadow: 0 8px 32px rgba(33,150,243,0.15);
+            position: relative;
+            text-align: center;
+        }
+        .close-profile-modal {
+            position: absolute;
+            top: 10px;
+            right: 16px;
+            font-size: 1.5rem;
+            color: #2196F3;
+            cursor: pointer;
+        }
+        #loginBtn, #logoutBtn {
+            margin: 8px 0;
+            padding: 10px 18px;
+            border-radius: 20px;
+            border: none;
+            font-size: 1rem;
+            cursor: pointer;
+            background: #2196F3;
+            color: #fff;
+            transition: background 0.2s;
+        }
+        #loginBtn:hover, #logoutBtn:hover {
+            background: #1976D2;
+        }
     </style>
 </head>
 <body>
@@ -1015,7 +1070,13 @@
     <div class="chat-container">
         <div class="simple-header">
             <div class="header-title">🌿 Just We</div>
-            <button class="header-clear-btn" onclick="clearChat()" title="Clear chat">🗑️</button>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <button class="header-clear-btn" onclick="clearChat()" title="Clear chat">🗑️</button>
+                <!-- Profile Icon Button -->
+                <button id="profileIcon" class="header-profile-btn" title="Profile" style="background: none; border: none; cursor: pointer; font-size: 1.3rem;">
+                    <span id="profileEmoji">👤</span>
+                </button>
+            </div>
         </div>
         
         <div class="chat-messages" id="chatMessages">
@@ -1069,6 +1130,16 @@
         </div>
     </div>
 
+    <!-- Profile Modal for Login/Logout -->
+    <div id="profileModal" class="profile-modal" style="display:none;">
+        <div class="profile-modal-content">
+            <span id="closeProfileModal" class="close-profile-modal" title="Close">&times;</span>
+            <h2>Profile</h2>
+            <div id="userInfo" style="display:none; margin-bottom: 15px;"></div>
+            <button id="loginBtn">Sign in with Google</button>
+            <button id="logoutBtn" style="display:none;">Logout</button>
+        </div>
+    </div>
 
 
     <script>
@@ -1457,5 +1528,79 @@
             lastTouchEnd = now;
         }, false);
     </script>
+    <script type="module">
+  // Firebase v11+ CDN imports
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+  import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
+
+  // Your Firebase config
+  const firebaseConfig = {
+    apiKey: "AIzaSyAIDvBf9FFI_EDthb40OdScdLpoghZunBM",
+    authDomain: "justwe-c72a5.firebaseapp.com",
+    projectId: "justwe-c72a5",
+    storageBucket: "justwe-c72a5.appspot.com",
+    messagingSenderId: "403173288297",
+    appId: "1:403173288297:web:055897aca48c1fc56735f8",
+    measurementId: "G-0XEY1BL2X4"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const provider = new GoogleAuthProvider();
+
+  // Modal logic
+  const profileIcon = document.getElementById('profileIcon');
+  const profileModal = document.getElementById('profileModal');
+  const closeProfileModal = document.getElementById('closeProfileModal');
+  profileIcon.onclick = () => { profileModal.style.display = 'flex'; };
+  closeProfileModal.onclick = () => { profileModal.style.display = 'none'; };
+  window.onclick = (event) => {
+    if (event.target === profileModal) profileModal.style.display = 'none';
+  };
+
+  // Auth logic
+  const loginBtn = document.getElementById('loginBtn');
+  const logoutBtn = document.getElementById('logoutBtn');
+  const userInfo = document.getElementById('userInfo');
+  const profileEmoji = document.getElementById('profileEmoji');
+
+  loginBtn.onclick = async () => {
+    try {
+      await signInWithPopup(auth, provider);
+    } catch (error) {
+      alert("Login failed: " + error.message);
+    }
+  };
+
+  logoutBtn.onclick = async () => {
+    try {
+      await signOut(auth);
+    } catch (error) {
+      alert("Logout failed: " + error.message);
+    }
+  };
+
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      // User is signed in
+      loginBtn.style.display = 'none';
+      logoutBtn.style.display = 'inline-block';
+      userInfo.style.display = 'block';
+      userInfo.textContent = `Hello, ${user.displayName} (${user.email})`;
+      profileEmoji.textContent = user.photoURL ? '' : '👤';
+      if (user.photoURL) {
+        profileEmoji.innerHTML = `<img src="${user.photoURL}" alt="Profile" style="width:28px;height:28px;border-radius:50%;vertical-align:middle;">`;
+      }
+    } else {
+      // User is signed out
+      loginBtn.style.display = 'inline-block';
+      logoutBtn.style.display = 'none';
+      userInfo.style.display = 'none';
+      userInfo.textContent = '';
+      profileEmoji.textContent = '👤';
+    }
+  });
+</script>
 </body>
 </html> 
