@@ -131,7 +131,7 @@ The system monitors for:
 1. **Detection**: Keyword and pattern matching
 2. **Assessment**: Crisis level determination
 3. **Response**: Appropriate crisis response with resources
-4. **Resources**: Emergency hotlines and professional help
+4. **Resources**: Emergency hotlines and professional help hjhhiohiuoh
 
 ## 🎨 UI Features
 
